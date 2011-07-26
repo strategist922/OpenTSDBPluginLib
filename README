@@ -1,0 +1,82 @@
+------------------------------------------------------------------------------------
+                   Quick Start Guide - From Logs to Awesome Graphs 
+                            (and yeah Highly scalable)
+------------------------------------------------------------------------------------
+
+1. Install Flume
+    $ git clone git://github.com/cloudera/flume.git
+    $ cd flume/
+    $ export THRIFT_HOME=/path/to/thrift/bin
+    $ mvn install -DskipTests
+
+NOTE 1: I did not test cdh3-* version with OpenTSDB
+
+2. Install OpenTSDB 
+   OpenTSDB is free software and is available under the LGPLv3+ license and needs HBase installation
+   as prerequisite : http://opentsdb.net/
+
+3. create tsdb.properties in flume/conf
+     zookeeper.quorum = host1
+     tsdb.table = tsdb
+     tsdb.uidtable = tsdb-uid
+
+4. Add OpenTSDB sink to Flume Config.
+   (i) Edit flume-site.xml
+       <property>
+         <name>flume.plugin.classes</name>
+         <value>com.cloudera.flume.hbase.OpenTsdbSink</value>
+         <description>OpenTSDB Sink</description>
+       </property>
+
+   
+5. The following jars need to be in FLUME_CLASSPATH
+   (i)   commons-configuration-1.6.jar   (http://commons.apache.org/configuration/) 
+   (ii)  flume-plugin-hbasesink-0.9.5-SNAPSHOT.jar * (see NOTE 6)
+   (iii) hbase-0.90.3.jar   (http://hbase.apache.org/) 
+   (iv)  hbaseasync-1.0.jar (https://github.com/stumbleupon/asynchbase)  
+   (v)   suasync-1.0.jar    (https://github.com/stumbleupon/async)
+   (vi)  tsdb-1.0.jar       (https://github.com/stumbleupon/opentsdb)
+
+Export the FLUME_CLASSPATH
+   $ export FLUME_CLASSPATH=/PATH/TO/YOUR/PLUGIN/DIR/*
+   If using a daemon mode, edit the flume-env.sh for FLUME_CLASSPATH
+
+NOTE 2: The version of jars in this repo works fine with flume-0.9.5 
+        and I haven't tested it against cdh3-* version
+NOTE 3: For HBase 0.90 onwards you need to compile latest hbaseasync-1.0.jar and also
+        use it in OpenTSDB : https://gist.github.com/799658
+        (The version used in this repo was tested with hbase 0.90)
+
+6. Start Flume Master and a Flume Node
+
+7. Configure Flume and OpenTSDB 
+   E.g: To consume /proc/vmstat and /proc/meminfo stats do following :- 
+   (i)  Create metric names:
+    ./src/tsdb mkmetric --zkquorum=host1 all_metrics_that_flume_pushes
+NOTE 4: You need to make sure that you create *all* metrics which would be pushed. 
+        I created a small awk and a python script to automate.
+        The stumpleupon folks turned off on-fly metric creation for a reson - avoiding bogus client metrics
+        One still could hack OpenTSDB to create metrics on fly.
+
+   (ii) Configure Flume Nodes:
+    From Flume Shell :
+     exec config node1  'multitail("/proc/vmstat", "/proc/meminfo")' 'regexAll("(\\w+)\\W+(\\w+)", "metric","value")openTSDB("%{metric}", "%{value}", "", "%s","%{host}")'
+
+NOTE 5: Both these files have a metric name followed by a value, hence multitail and a single regex works. You would need to 
+examine your files before using above command.
+
+8. Have fun seeing the High Resolution per second visualzation of all your Data
+    (i)  http://i.imgur.com/3secJ.png
+    (ii) http://i.imgur.com/Nkcox.png
+OpenTSDB will never delete or downsample data and can easily store billions of data points. Moreover, it can also 
+give you graphs at any  granularilty. (ii) is downsampled version of (i)
+
+
+NOTE 6: The code for OpenTSDB Sink is available under Apache 2.0 License in our repo. 
+        git://github.com/LeagueOfLegends/flume.git
+        Soon it would be checked-in master Flume Trunk.
+        To compile:
+        (i)  Compile flume
+        (ii) mvn -pl plugins/flume-plugin-hbasesink -am install -DskipTests
+        OpenTSDBSink is made part of hbase sink, since under the hood Flume just puts data-points to HBase  
+
