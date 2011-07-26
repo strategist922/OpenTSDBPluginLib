@@ -73,11 +73,15 @@ OpenTSDB will never delete or downsample data and can easily store billions of d
 give you graphs at any  granularilty. (ii) is downsampled version of (i)
 
 
-NOTE 6: The code for OpenTSDB Sink is available under Apache 2.0 License in our repo. 
+NOTE 6: The code for OpenTSDB Sink is available under Apache 2.0 License in our fork. 
         https://github.com/LeagueOfLegends/flume
-        Soon it would be checked-in master Flume Trunk.
+        Soon it would be merged with master
         To compile:
         (i)  Compile flume
-        (ii) mvn -pl plugins/flume-plugin-hbasesink -am install -DskipTests
+        (ii) Make sure you install all the jars in maven repo
+             For e.g:
+             mvn install:install-file -Dfile=/home/drayan/workspace/asynchbase/build/hbaseasync-1.0.jar \
+                        -DgroupId=net.opentsdb -DartifactId=asynchbase -Dversion=1.0 -Dpackaging=jar
+        (iii) mvn -pl plugins/flume-plugin-hbasesink -am install -DskipTests
         OpenTSDBSink is made part of hbase sink, since under the hood Flume just puts data-points to HBase  
 
