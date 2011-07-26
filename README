@@ -9,7 +9,7 @@
     $ export THRIFT_HOME=/path/to/thrift/bin
     $ mvn install -DskipTests
 
-NOTE 1: I did not test cdh3-* version with OpenTSDB
+NOTE 1: Have not tested Flume cdh3-* version with OpenTSDB
 
 2. Install OpenTSDB 
    OpenTSDB is free software and is available under the LGPLv3+ license and needs HBase installation
@@ -48,6 +48,7 @@ NOTE 3: For HBase 0.90 onwards you need to compile latest hbaseasync-1.0.jar and
         (The version used in this repo was tested with hbase 0.90)
 
 6. Start Flume Master and a Flume Node
+   openTSDB sink should appear in http://yourflumemaster:35871/masterext.jsp
 
 7. Configure Flume and OpenTSDB 
    E.g: To consume /proc/vmstat and /proc/meminfo stats do following :- 
@@ -73,7 +74,7 @@ give you graphs at any  granularilty. (ii) is downsampled version of (i)
 
 
 NOTE 6: The code for OpenTSDB Sink is available under Apache 2.0 License in our repo. 
-        git://github.com/LeagueOfLegends/flume.git
+        https://github.com/LeagueOfLegends/flume
         Soon it would be checked-in master Flume Trunk.
         To compile:
         (i)  Compile flume
